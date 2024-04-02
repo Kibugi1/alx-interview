@@ -1,44 +1,44 @@
 #!/usr/bin/python3
-"""Log Parser"""
+"""
+Log Parsing
+"""
 import sys
 
 
-if __name__ == '__main__':
-    file_size = [0]
-    status_codes = {200: 0, 301: 0, 400: 0, 401: 0,
-                    403: 0, 404: 0, 405: 0, 500: 0}
+total_file_size = 0
+status = ['200', '301', '400', '401', '403', '404', '405', '500']
+obj = dict.fromkeys(status, 0)
 
-    def print_stats():
-        """ Print statistics """
-        print('File size: {}'.format(file_size[0]))
-        for key in sorted(status_codes.keys()):
-            if status_codes[key]:
-                print('{}: {}'.format(key, status_codes[key]))
 
-    def parse_line(line):
-        """ Checks the line for matches """
-        try:
-            line = line[:-1]
-            word = line.split(' ')
-            # File size is last parameter on stdout
-            file_size[0] += int(word[-1])
-            # Status code comes before file size
-            status_code = int(word[-2])
-            # Move through dictionary of status codes
-            if status_code in status_codes:
-                status_codes[status_code] += 1
-        except BaseException:
-            pass
+def printLogStat():
+    """
+    log stats
+    """
+    print("File size: {}".format(total_file_size))
+    for key, value in sorted(obj.items()):
+        if value > 0:
+            print("{}: {}".format(key, value))
 
-    linenum = 1
+
+if __name__ == "__main__":
+    count_stat = 0
     try:
         for line in sys.stdin:
-            parse_line(line)
-            """ print after every 10 lines """
-            if linenum % 10 == 0:
-                print_stats()
-            linenum += 1
+            line = line.split()
+            count_stat += 1
+            try:
+                total_file_size += int(line[-1])
+
+                if line[-2] in status:
+                    obj[line[-2]] += 1
+
+            except (IndexError, ValueError):
+                pass
+
+            if count_stat % 10 == 0:
+                printLogStat()
     except KeyboardInterrupt:
-        print_stats()
+        printLogStat()
         raise
-    print_stats()
+    else:
+        printLogStat()
